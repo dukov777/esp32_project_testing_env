@@ -6,9 +6,12 @@ file(REMOVE_RECURSE "${CMAKE_CURRENT_LIST_DIR}/components/component_B")
 file(COPY "${CMAKE_CURRENT_LIST_DIR}/../../mocks/component_B/"
      DESTINATION "${CMAKE_CURRENT_LIST_DIR}/components/component_B/")
 
+# IDF auto-discovers sdkconfig.defaults.<target> alongside the base file —
+# don't list the suffixed path explicitly (IDF_TARGET is undefined here
+# before project(), and CI actions like espressif/esp-idf-ci-action don't
+# run `set-target` so the variable expands to empty → CMake error).
 set(SDKCONFIG_DEFAULTS
     "${CMAKE_CURRENT_LIST_DIR}/../../test_common/sdkconfig.defaults"
-    "${CMAKE_CURRENT_LIST_DIR}/../../test_common/sdkconfig.defaults.${IDF_TARGET}"
 )
 
 set(EXTRA_COMPONENT_DIRS

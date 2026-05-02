@@ -17,7 +17,7 @@ BUILD_ESP32P4 = 'build_esp32p4'
 @pytest.mark.host
 @pytest.mark.parametrize('embedded_services,target,app_path,build_dir', [
     ('idf', 'linux', os.path.join(HERE, 'test_apps', 'test_component_A'), BUILD_LINUX),
-], indirect=True)
+], indirect=True, ids=['linux'])
 def test_unit_component_A(dut):
     # group= matches the Unity tag inside [brackets] in TEST_CASE.
     dut.run_all_single_board_cases(group='component_A')
@@ -27,7 +27,7 @@ def test_unit_component_A(dut):
 @pytest.mark.host
 @pytest.mark.parametrize('embedded_services,target,app_path,build_dir', [
     ('idf', 'linux', os.path.join(HERE, 'test_apps', 'test_component_B'), BUILD_LINUX),
-], indirect=True)
+], indirect=True, ids=['linux'])
 def test_unit_component_B(dut):
     dut.run_all_single_board_cases(group='component_B')
 
@@ -38,7 +38,7 @@ def test_unit_component_B(dut):
 @pytest.mark.host
 @pytest.mark.parametrize('embedded_services,target,app_path,build_dir', [
     ('idf', 'linux', os.path.join(HERE, 'test_apps', 'test_integration_AB'), BUILD_LINUX),
-], indirect=True)
+], indirect=True, ids=['linux'])
 def test_integration_linux(dut):
     dut.run_all_single_board_cases(group='integration')
 
@@ -47,6 +47,6 @@ def test_integration_linux(dut):
 @pytest.mark.esp32p4
 @pytest.mark.parametrize('embedded_services,target,app_path,build_dir', [
     ('esp,idf', 'esp32p4', os.path.join(HERE, 'test_apps', 'test_integration_AB'), BUILD_ESP32P4),
-], indirect=True)
+], indirect=True, ids=['esp32p4'])
 def test_integration_esp32p4(dut):
     dut.run_all_single_board_cases(group='integration')

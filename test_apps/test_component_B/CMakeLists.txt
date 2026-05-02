@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.16)
 
 set(SDKCONFIG_DEFAULTS
     "${CMAKE_CURRENT_LIST_DIR}/../../test_common/sdkconfig.defaults"
-    "${CMAKE_CURRENT_LIST_DIR}/../../test_common/sdkconfig.defaults.${IDF_TARGET}"
 )
 
 set(EXTRA_COMPONENT_DIRS
