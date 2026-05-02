@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build every test app for every relevant target.
-#   Linux host:  all three apps  -> test_apps/<app>/build_linux/
-#   ESP32-P4:    integration app -> test_apps/test_integration_AB/build_esp32p4/
+#   Linux host:  all three apps  -> tests/apps/<app>/build_linux/
+#   ESP32-P4:    integration app -> tests/apps/test_integration_AB/build_esp32p4/
 #
 # Usage:  scripts/build-all.sh [linux|esp32p4|all]
 #         (default: all)
@@ -20,7 +20,7 @@ WHAT="${1:-all}"
 
 build_linux() {
     echo "=== Building all test apps for linux ==="
-    for app in test_apps/*/; do
+    for app in tests/apps/*/; do
         echo "--- $app ---"
         idf.py -C "$app" -B "${app}build_linux" --preview set-target linux build
     done
@@ -28,8 +28,8 @@ build_linux() {
 
 build_esp32p4() {
     echo "=== Building integration app for esp32p4 ==="
-    idf.py -C test_apps/test_integration_AB \
-           -B test_apps/test_integration_AB/build_esp32p4 \
+    idf.py -C tests/apps/test_integration_AB \
+           -B tests/apps/test_integration_AB/build_esp32p4 \
            set-target esp32p4 build
 }
 

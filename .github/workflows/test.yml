@@ -44,7 +44,7 @@ jobs:
       - name: Build all test apps for linux
         run: |
           . "$HOME/esp-idf/export.sh"
-          for app in test_apps/*/; do
+          for app in tests/apps/*/; do
               idf.py -C "$app" -B "$app/build_linux" --preview set-target linux build
           done
 
@@ -70,7 +70,7 @@ jobs:
         with:
           esp_idf_version: v5.5.4
           target: esp32p4
-          path: test_apps/test_integration_AB
+          path: tests/apps/test_integration_AB
 
   # NOTE: hardware execution (pytest -m esp32p4) requires a self-hosted
   # runner with a connected ESP32-P4 and is not configured here.

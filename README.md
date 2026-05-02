@@ -19,32 +19,40 @@ integration), and pytest-embedded orchestration.
 
 ```
 .
-├── components/             # production components (added via EXTRA_COMPONENT_DIRS)
+├── components/                 # production components
 │   ├── component_A/
 │   │   ├── include/, component_A.c, CMakeLists.txt
-│   │   └── test/           # unit tests for component_A (mocks B)
+│   │   └── test/               # unit tests for component_A (mocks B)
 │   └── component_B/
 │       ├── include/, component_B.c, CMakeLists.txt
-│       └── test/           # unit tests for component_B
-├── test_components/        # cross-component tests (no single owner)
-│   └── test_int/           # integration tests for A+B
-├── mocks/                  # canonical mock sources (CMock)
-│   ├── component_A/        # template (not currently wired into any app)
-│   ├── component_B/        # used by test_apps/test_component_A
-│   └── peripheral_mocks/
-│       └── driver/         # IDF `driver` stub mock; see its README
-├── test_common/
-│   ├── sdkconfig.defaults{,.linux,.esp32p4}
-│   └── test_main/          # shared app_main calling unity_run_menu()
-├── test_apps/              # one IDF project per test binary
-│   ├── test_component_A/
-│   ├── test_component_B/
-│   └── test_integration_AB/
+│       └── test/               # unit tests for component_B
+├── tests/                      # all test infrastructure
+│   ├── apps/                   # one IDF project per test binary
+│   │   ├── test_component_A/
+│   │   ├── test_component_B/
+│   │   └── test_integration_AB/
+│   ├── common/                 # shared test infra
+│   │   ├── sdkconfig.defaults{,.linux,.esp32p4}
+│   │   └── test_main/          # shared app_main calling unity_run_menu()
+│   ├── components/             # cross-component tests (no single owner)
+│   │   └── test_int/           # integration tests for A+B
+│   └── mocks/                  # canonical mock sources (CMock)
+│       ├── component_A/        # template (not currently wired into any app)
+│       ├── component_B/        # used by tests/apps/test_component_A
+│       └── peripheral_mocks/
+│           └── driver/         # IDF `driver` stub mock; see its README
 ├── pytest.ini
 ├── conftest.py
 ├── pytest_test_apps.py
-└── requirements.txt
+├── requirements.txt
+└── scripts/
+    ├── build-all.sh
+    └── clean-all.sh
 ```
+
+Two `components/` dirs deliberately:
+- **`/components/`** — production code, added to each test app via `EXTRA_COMPONENT_DIRS`.
+- **`/tests/components/`** — cross-component tests, also added via `EXTRA_COMPONENT_DIRS`. Per-component tests live next to their code under `/components/<comp>/test/`, so `tests/components/` only holds tests that span multiple components.
 
 ## Build
 
@@ -53,12 +61,12 @@ integration), and pytest-embedded orchestration.
 pip install -r requirements.txt
 
 # Build all test apps for the host (linux) target — uses build_linux/
-for app in test_apps/*/; do
+for app in tests/apps/*/; do
     idf.py -C "$app" -B "$app/build_linux" --preview set-target linux build
 done
 
 # Build the integration app for ESP32-P4 hardware — uses build_esp32p4/
-idf.py -C test_apps/test_integration_AB -B test_apps/test_integration_AB/build_esp32p4 \
+idf.py -C tests/apps/test_integration_AB -B tests/apps/test_integration_AB/build_esp32p4 \
     set-target esp32p4 build
 ```
 
@@ -83,7 +91,7 @@ pytest pytest_test_apps.py::test_unit_component_A   # single test
 Hardware run requires:
 
 ```bash
-idf.py -C test_apps/test_integration_AB flash
+idf.py -C tests/apps/test_integration_AB flash
 pytest -m esp32p4
 ```
 
@@ -108,30 +116,32 @@ the other and the test silently runs zero cases.
    `WHOLE_ARCHIVE` and `REQUIRES unity <comp>`. Test sources live next
    to the code they test.
 3. Tag each `TEST_CASE` with a unique bracket string (e.g. `[<comp>]`).
-4. If mocking another component, add `mocks/<other>/{CMakeLists.txt, mock/mock_config.yaml}`.
-5. Create `test_apps/test_<comp>/CMakeLists.txt` mirroring the existing
+4. If mocking another component, add `tests/mocks/<other>/{CMakeLists.txt, mock/mock_config.yaml}`.
+5. Create `tests/apps/test_<comp>/CMakeLists.txt` mirroring the existing
    apps. The test app's `EXTRA_COMPONENT_DIRS` must list both
-   `components` and `components/<comp>/test` (the second entry is what
-   makes the nested test dir discoverable as a separate component named
-   `test`). Copy any mock into `components/<other>/` before `project()`,
+   `../../../components` (production tree) and
+   `../../../components/<comp>/test` (the second entry is what makes
+   the nested test dir discoverable as a separate component named
+   `test`), plus `../../common`. Copy any mock from `tests/mocks/<other>/`
+   into the test app's local `components/<other>/` before `project()`,
    `set(ENV{TEST_COMPONENTS} "test")`, and on linux
    `set(COMPONENTS test_main <comp> ... test)`.
 6. Add a `test_unit_<comp>` function to `pytest_test_apps.py` with the
    right `group=` value.
 
 For cross-component tests (e.g. integration of A + B), put them under
-`test_components/<unique_name>/` instead — no single component owns them.
+`tests/components/<unique_name>/` instead — no single component owns them.
 
 ## Adding a peripheral mock
 
-See `mocks/peripheral_mocks/driver/README.md`. New peripherals get a
-sibling directory whose name matches the IDF component to shadow.
+See `tests/mocks/peripheral_mocks/driver/README.md`. New peripherals
+get a sibling directory whose name matches the IDF component to shadow.
 
 ## Edits to mocks
 
-The canonical mock sources live under `mocks/`. Each test app's
-`CMakeLists.txt` runs `file(COPY mocks/<x>/ DESTINATION components/<x>/)`
-at configure time. **`test_apps/*/components/` is git-ignored and
+The canonical mock sources live under `tests/mocks/`. Each test app's
+`CMakeLists.txt` runs `file(COPY ../../mocks/<x>/ DESTINATION components/<x>/)`
+at configure time. **`tests/apps/*/components/` is git-ignored and
 regenerated each configure — do not hand-edit, your changes will be
 silently clobbered on the next `idf.py … reconfigure`.**
 

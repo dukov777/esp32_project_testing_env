@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.16)
 
 set(SDKCONFIG_DEFAULTS
-    "${CMAKE_CURRENT_LIST_DIR}/../../test_common/sdkconfig.defaults"
+    "${CMAKE_CURRENT_LIST_DIR}/../../common/sdkconfig.defaults"
 )
 
 set(EXTRA_COMPONENT_DIRS
-    "${CMAKE_CURRENT_LIST_DIR}/../../components"
-    "${CMAKE_CURRENT_LIST_DIR}/../../test_components/test_int"
-    "${CMAKE_CURRENT_LIST_DIR}/../../test_common"
+    "${CMAKE_CURRENT_LIST_DIR}/../../../components"
+    "${CMAKE_CURRENT_LIST_DIR}/../../components/test_int"
+    "${CMAKE_CURRENT_LIST_DIR}/../../common"
 )
 
 set(ENV{TEST_COMPONENTS} "test_int")

@@ -12,4 +12,4 @@ __pycache__/
 results-*.xml
 
 # Per-app mock copies — regenerated at CMake configure time
-test_apps/*/components/
+tests/apps/*/components/

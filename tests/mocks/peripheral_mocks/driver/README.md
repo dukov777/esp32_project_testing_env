@@ -14,7 +14,7 @@ file(COPY "${CMAKE_CURRENT_LIST_DIR}/../../mocks/peripheral_mocks/driver/"
      DESTINATION "${CMAKE_CURRENT_LIST_DIR}/components/driver/")
 ```
 
-`test_apps/*/components/` is git-ignored; the copy is regenerated each
+`tests/apps/*/components/` is git-ignored; the copy is regenerated each
 configure. Edit the canonical source under
 `mocks/peripheral_mocks/driver/`, then re-run `idf.py … reconfigure` (or
 `build`).
