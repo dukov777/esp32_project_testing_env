@@ -2,6 +2,8 @@
 
 > **v3.1 corrections (2026-05-02) — these supersede the v3 text below where they conflict.**
 >
+> **Note (2026-05-02):** the directory `real_components/` referenced throughout this spec was renamed to `components/` post-scaffold. The body of the spec still says `real_components/`; the live tree uses `components/`. Mentally substitute. (Project root `components/` is not the same as IDF's "project components" precedence concept — projects live under `test_apps/`, and each one has its own `<test_app>/components/` for mock injection. The repo-root `components/` is just an `EXTRA_COMPONENT_DIRS` entry.)
+>
 > **C1 — Test components moved out of component dirs.** IDF's component scanner treats an `EXTRA_COMPONENT_DIRS` entry that itself has a `CMakeLists.txt` as a single component; subdirectories under it are NOT scanned. So `real_components/component_A/test_a/` would never register, and `set(COMPONENTS … test_a)` plus `REQUIRES … test_a` would both fail at configure.
 >
 > Fix: introduce a sibling `test_components/` tree.

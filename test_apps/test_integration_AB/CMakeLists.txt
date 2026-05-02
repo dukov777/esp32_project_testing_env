@@ -5,7 +5,7 @@ set(SDKCONFIG_DEFAULTS
 )
 
 set(EXTRA_COMPONENT_DIRS
-    "${CMAKE_CURRENT_LIST_DIR}/../../real_components"
+    "${CMAKE_CURRENT_LIST_DIR}/../../components"
     "${CMAKE_CURRENT_LIST_DIR}/../../test_components/test_int"
     "${CMAKE_CURRENT_LIST_DIR}/../../test_common"
 )

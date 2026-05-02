@@ -19,7 +19,7 @@ integration), and pytest-embedded orchestration.
 
 ```
 .
-├── real_components/        # production components (added via EXTRA_COMPONENT_DIRS)
+├── components/        # production components (added via EXTRA_COMPONENT_DIRS)
 │   ├── component_A/
 │   └── component_B/
 ├── test_components/        # test-only components (added via EXTRA_COMPONENT_DIRS)
@@ -101,7 +101,7 @@ the other and the test silently runs zero cases.
 
 ## Adding a new component test
 
-1. Create `real_components/<comp>/{include/<comp>.h, <comp>.c, CMakeLists.txt}`.
+1. Create `components/<comp>/{include/<comp>.h, <comp>.c, CMakeLists.txt}`.
 2. Create `test_components/test_<comp>/{CMakeLists.txt, test_<comp>.c}`
    with `WHOLE_ARCHIVE` and `REQUIRES unity <comp>`.
 3. Tag each `TEST_CASE` with a unique bracket string (e.g. `[<comp>]`).

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Status
 
-Project scaffolded per `SCAFFOLD_SPEC.md` (v3 + v3.1 corrections prelude). The v3.1 prelude moved test components out of `real_components/<comp>/test_*/` (which IDF's component scanner would not have discovered) into a sibling `test_components/` tree, and dropped the `integration_tests` config-only parent. `SCAFFOLD_SPEC.md` is kept for traceability; the live tree under `real_components/`, `test_components/`, `mocks/`, `test_common/`, and `test_apps/` reflects the corrected layout.
+Project scaffolded per `SCAFFOLD_SPEC.md` (v3 + v3.1 corrections prelude). The v3.1 prelude moved test components out of `components/<comp>/test_*/` (which IDF's component scanner would not have discovered) into a sibling `test_components/` tree, and dropped the `integration_tests` config-only parent. `SCAFFOLD_SPEC.md` is kept for traceability; the live tree under `components/`, `test_components/`, `mocks/`, `test_common/`, and `test_apps/` reflects the corrected layout.
 
 ## Project Purpose
 
@@ -23,7 +23,7 @@ ESP-IDF v5.5.4 reference project demonstrating a working unit + integration test
 
 The interesting part of this project is **how the override + mock + link wiring fits together**. Reading any single CMakeLists in isolation will not explain it. Key invariants:
 
-1. **Override precedence**: project `components/` > `EXTRA_COMPONENT_DIRS` > managed > IDF built-in. Real components live under `real_components/` (added via `EXTRA_COMPONENT_DIRS`) precisely so each test app's local `components/` can shadow them with a mock.
+1. **Override precedence**: a test app's own `<test_app>/components/` (highest) > `EXTRA_COMPONENT_DIRS` > managed > IDF built-in. The repo-root `components/` directory is added to each test app via `EXTRA_COMPONENT_DIRS`, so each test app's local `<test_app>/components/` (the auto-injected mock copy) can shadow it.
 2. **Per-app mock injection is a CMake-time copy**, not a checked-in duplicate. Each test app's root `CMakeLists.txt` does `file(COPY mocks/<name>/ DESTINATION components/<name>/)` *before* `project()`. `test_apps/*/components/` is therefore git-ignored — edit the canonical source under `mocks/`, then reconfigure.
 3. **`COMPONENT_OVERRIDEN_DIR`** (single 'D' — IDF's spelling) is the only correct way for a mock CMakeLists to locate the real component's headers. Do not hardcode `$ENV{IDF_PATH}/components/...`.
 4. **`mock_config.yaml` is mandatory.** Without `:plugins: [expect, ...]`, `_ExpectAndReturn` symbols are not generated and tests fail to link.
