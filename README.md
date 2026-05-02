@@ -1,5 +1,7 @@
 # ESP-IDF Test Project (esp32p4 + linux host)
 
+[![tests](https://github.com/dukov777/esp32_project_testing_env/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/dukov777/esp32_project_testing_env/actions/workflows/test.yml)
+
 Reference project demonstrating ESP-IDF v5.5.4 unit + integration tests
 with CMock mocking, runnable on the `linux` host target (FreeRTOS POSIX
 simulator) and on ESP32-P4 hardware. Two pure-logic components
@@ -132,3 +134,19 @@ silently clobbered on the next `idf.py … reconfigure`.**
 - `target-build` — build-only for `esp32p4` (integration app). Hardware
   execution (`pytest -m esp32p4`) requires a self-hosted runner with a
   connected ESP32-P4.
+
+The badge at the top of this README reflects the latest `main` run.
+
+### Enforce on PRs (branch protection)
+
+To block merges to `main` until CI passes:
+
+1. GitHub repo → **Settings** → **Branches** → **Add branch ruleset**
+   (or "Add rule" on older UI) targeting `main`.
+2. Enable **Require status checks to pass before merging**.
+3. Add `host-tests` and `target-build` to the required-checks list.
+4. Optionally enable **Require branches to be up to date before merging**
+   so PRs always run CI against the current `main` tip.
+
+Once configured, the PR's "Merge" button stays disabled until both jobs
+report green.
