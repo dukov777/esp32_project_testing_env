@@ -1,0 +1,61 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  host-tests:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install ESP-IDF v5.5.4
+        run: |
+          git clone --depth 1 -b v5.5.4 --recursive \
+              https://github.com/espressif/esp-idf.git "$HOME/esp-idf"
+          "$HOME/esp-idf/install.sh" all
+
+      - name: Install pytest deps
+        run: |
+          . "$HOME/esp-idf/export.sh"
+          pip install -r requirements.txt
+
+      - name: Build all test apps for linux
+        run: |
+          . "$HOME/esp-idf/export.sh"
+          for app in test_apps/*/; do
+              idf.py -C "$app" -B "$app/build_linux" --preview set-target linux build
+          done
+
+      - name: Run host tests
+        run: |
+          . "$HOME/esp-idf/export.sh"
+          pytest -m host --junitxml=results-host.xml
+
+      - name: Upload host results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-host
+          path: results-host.xml
+
+  target-build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build integration app for esp32p4
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: v5.5.4
+          target: esp32p4
+          path: test_apps/test_integration_AB
+
+  # NOTE: hardware execution (pytest -m esp32p4) requires a self-hosted
+  # runner with a connected ESP32-P4 and is not configured here.

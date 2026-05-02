@@ -1,0 +1,2 @@
+# Linux uses FreeRTOS POSIX simulator. Keep this minimal — most
+# chip-specific Kconfigs do not exist on Linux and will warn.

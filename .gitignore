@@ -1,0 +1,15 @@
+build/
+build_linux/
+build_esp32p4/
+build_*/
+sdkconfig
+sdkconfig.old
+managed_components/
+dependencies.lock
+__pycache__/
+*.pyc
+.pytest_cache/
+results-*.xml
+
+# Per-app mock copies — regenerated at CMake configure time
+test_apps/*/components/
