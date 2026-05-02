@@ -38,6 +38,8 @@
 >
 > Fix: add `python_files = pytest_*.py test_*.py` to `[pytest]` in `pytest.ini`. (Alternatively rename the file to `test_apps.py`, but keeping the spec's filename and overriding the pattern is non-invasive and lets the file name signal "this is the pytest-embedded entry point.")
 >
+> **C7 — Per-component tests live nested in the component dir.** With C4's per-app `EXTRA_COMPONENT_DIRS` scoping (each app sees exactly one test component), the unique-test-dir-name constraint from the original spec only applies *across one binary*. Per-component tests can therefore live at `components/<comp>/test/` next to the code they test — naturally cohesive, mirrors esp-idf's own repo layout — and each registers as an IDF component named `test` without collision. Cross-component tests (e.g. `test_int`) have no natural home inside one component, so they stay in `test_components/<unique_name>/`. Test app CMakeLists list `components` plus `components/<comp>/test` (the second entry is what makes IDF's scanner pick up the nested `test/` dir as a separate component).
+>
 > **C6 — Per-target build dirs (`build_linux/`, `build_esp32p4/`).** The original spec used a single `build/` per app. `idf.py set-target X build` wipes the build dir on every target switch, so a workflow like "build esp32p4, then `pytest -m host`" silently runs an esp32p4 RISC-V `.elf` on the linux host — pexpect times out after 30s with empty buffer, no helpful error.
 >
 > Fix:

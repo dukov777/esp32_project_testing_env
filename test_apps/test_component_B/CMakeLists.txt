@@ -6,14 +6,14 @@ set(SDKCONFIG_DEFAULTS
 
 set(EXTRA_COMPONENT_DIRS
     "${CMAKE_CURRENT_LIST_DIR}/../../components"
-    "${CMAKE_CURRENT_LIST_DIR}/../../test_components/test_b"
+    "${CMAKE_CURRENT_LIST_DIR}/../../components/component_B/test"
     "${CMAKE_CURRENT_LIST_DIR}/../../test_common"
 )
 
-set(ENV{TEST_COMPONENTS} "test_b")
+set(ENV{TEST_COMPONENTS} "test")
 
 if("${IDF_TARGET}" STREQUAL "linux")
-    set(COMPONENTS test_main component_B test_b)
+    set(COMPONENTS test_main component_B test)
 endif()
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)

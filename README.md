@@ -19,12 +19,14 @@ integration), and pytest-embedded orchestration.
 
 ```
 .
-├── components/        # production components (added via EXTRA_COMPONENT_DIRS)
+├── components/             # production components (added via EXTRA_COMPONENT_DIRS)
 │   ├── component_A/
+│   │   ├── include/, component_A.c, CMakeLists.txt
+│   │   └── test/           # unit tests for component_A (mocks B)
 │   └── component_B/
-├── test_components/        # test-only components (added via EXTRA_COMPONENT_DIRS)
-│   ├── test_a/             # unit tests for component_A (mocks B)
-│   ├── test_b/             # unit tests for component_B
+│       ├── include/, component_B.c, CMakeLists.txt
+│       └── test/           # unit tests for component_B
+├── test_components/        # cross-component tests (no single owner)
 │   └── test_int/           # integration tests for A+B
 ├── mocks/                  # canonical mock sources (CMock)
 │   ├── component_A/        # template (not currently wired into any app)
@@ -102,16 +104,23 @@ the other and the test silently runs zero cases.
 ## Adding a new component test
 
 1. Create `components/<comp>/{include/<comp>.h, <comp>.c, CMakeLists.txt}`.
-2. Create `test_components/test_<comp>/{CMakeLists.txt, test_<comp>.c}`
-   with `WHOLE_ARCHIVE` and `REQUIRES unity <comp>`.
+2. Create `components/<comp>/test/{CMakeLists.txt, test_<comp>.c}` with
+   `WHOLE_ARCHIVE` and `REQUIRES unity <comp>`. Test sources live next
+   to the code they test.
 3. Tag each `TEST_CASE` with a unique bracket string (e.g. `[<comp>]`).
 4. If mocking another component, add `mocks/<other>/{CMakeLists.txt, mock/mock_config.yaml}`.
 5. Create `test_apps/test_<comp>/CMakeLists.txt` mirroring the existing
-   apps; copy any mock into `components/<other>/` before `project()`,
-   `set(TEST_COMPONENTS test_<comp>)`, and on linux
-   `set(COMPONENTS test_main <comp> ... test_<comp>)`.
+   apps. The test app's `EXTRA_COMPONENT_DIRS` must list both
+   `components` and `components/<comp>/test` (the second entry is what
+   makes the nested test dir discoverable as a separate component named
+   `test`). Copy any mock into `components/<other>/` before `project()`,
+   `set(ENV{TEST_COMPONENTS} "test")`, and on linux
+   `set(COMPONENTS test_main <comp> ... test)`.
 6. Add a `test_unit_<comp>` function to `pytest_test_apps.py` with the
    right `group=` value.
+
+For cross-component tests (e.g. integration of A + B), put them under
+`test_components/<unique_name>/` instead — no single component owns them.
 
 ## Adding a peripheral mock
 

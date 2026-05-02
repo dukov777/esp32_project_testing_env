@@ -16,7 +16,7 @@ set(SDKCONFIG_DEFAULTS
 
 set(EXTRA_COMPONENT_DIRS
     "${CMAKE_CURRENT_LIST_DIR}/../../components"
-    "${CMAKE_CURRENT_LIST_DIR}/../../test_components/test_a"
+    "${CMAKE_CURRENT_LIST_DIR}/../../components/component_A/test"
     "${CMAKE_CURRENT_LIST_DIR}/../../test_common"
 )
 
@@ -24,12 +24,12 @@ set(EXTRA_COMPONENT_DIRS
 # (via the env var, which propagates into IDF's `cmake -P` requirements
 # pre-scan subprocess; a regular CMake variable would not). Turned into a
 # REQUIRES edge so WHOLE_ARCHIVE actually pulls in TEST_CASE linker sections.
-set(ENV{TEST_COMPONENTS} "test_a")
+set(ENV{TEST_COMPONENTS} "test")
 
 # On Linux, COMPONENTS must be set explicitly to disable auto-inclusion
 # of all IDF components (per host-apps doc). REQUIRES expands the closure.
 if("${IDF_TARGET}" STREQUAL "linux")
-    set(COMPONENTS test_main component_A component_B test_a)
+    set(COMPONENTS test_main component_A component_B test)
 endif()
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
