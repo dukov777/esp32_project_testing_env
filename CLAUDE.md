@@ -4,7 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Status
 
-Project scaffolded per `SCAFFOLD_SPEC.md` (v3 + v3.1 corrections prelude). The v3.1 prelude moved test components out of `components/<comp>/test_*/` (which IDF's component scanner would not have discovered) into a sibling `tests/components/` tree, and dropped the `integration_tests` config-only parent. `SCAFFOLD_SPEC.md` is kept for traceability; the live tree under `components/`, `tests/components/`, `mocks/`, `tests/common/`, and `tests/apps/` reflects the corrected layout.
+Project scaffolded per `SCAFFOLD_SPEC.md` (v3 + v3.1 corrections prelude). Live tree:
+
+- **`/components/`** — production components. Each has its unit tests nested at `components/<comp>/test/` (per C7 — tests live next to the code they exercise).
+- **`/tests/`** — umbrella for all test infra (per C8):
+  - `apps/` — one IDF project per test binary
+  - `common/` — shared `app_main` + sdkconfig defaults
+  - `components/` — cross-component tests (currently just `test_int`)
+  - `mocks/` — canonical CMock sources
+
+`SCAFFOLD_SPEC.md` is kept for traceability; the prelude (corrections C1–C8) is the authoritative ledger of what changed and why.
 
 ## Project Purpose
 

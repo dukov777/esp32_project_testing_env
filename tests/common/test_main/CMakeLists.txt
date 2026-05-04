@@ -7,7 +7,10 @@
 if("$ENV{TEST_COMPONENTS}" STREQUAL "")
     message(FATAL_ERROR
         "TEST_COMPONENTS env var not set. Each test app's root CMakeLists "
-        "must set(ENV{TEST_COMPONENTS} \"test_a ...\") before project().")
+        "must set(ENV{TEST_COMPONENTS} \"test\") (unit-test apps picking up "
+        "the nested components/<comp>/test/ component) or "
+        "set(ENV{TEST_COMPONENTS} \"test_int\") (integration app) before "
+        "project().")
 endif()
 
 # Convert space-separated env string into a CMake list.
