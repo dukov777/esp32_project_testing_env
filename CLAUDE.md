@@ -11,7 +11,7 @@ Project scaffolded per `SCAFFOLD_SPEC.md` (v3 + v3.1 corrections prelude). Live 
   - `apps/` — one IDF project per test binary
   - `common/` — shared `app_main` + sdkconfig defaults
   - `components/` — cross-component tests (currently just `test_int`)
-  - `mocks/` — canonical CMock sources
+  - `mocks/` — canonical CMock sources. `mocks/peripheral_mocks/driver/` is a template stub for mocking IDF's built-in `driver` component (e.g. `gpio.h`); copy it like the `component_B` pattern when a test app needs to fake hardware peripherals.
 
 `SCAFFOLD_SPEC.md` is kept for traceability; the prelude (corrections C1–C8) is the authoritative ledger of what changed and why.
 
@@ -21,7 +21,7 @@ ESP-IDF v5.5.4 reference project demonstrating a working unit + integration test
 
 ## Toolchain & Targets
 
-- **ESP-IDF**: `v5.5.4` (no other version). Always `. $IDF_PATH/export.sh` before any `idf.py` command.
+- **ESP-IDF**: `v5.5.4` (no other version). Always `. $IDF_PATH/export.sh` before any `idf.py` command. Stale `tests/apps/*/sdkconfig` (gitignored) from a prior IDF version will be regenerated on next configure — if you copy a live tree elsewhere, delete the per-app `sdkconfig` first so the new IDF writes a fresh one.
 - **Hardware target**: `esp32p4`.
 - **Host target**: `linux` (requires `--preview` on `set-target`; not needed for `esp32p4`).
 - **Test framework**: Unity, IDF-style — `TEST_CASE(...)` macros + `unity_run_menu()`.
@@ -33,10 +33,10 @@ ESP-IDF v5.5.4 reference project demonstrating a working unit + integration test
 The interesting part of this project is **how the override + mock + link wiring fits together**. Reading any single CMakeLists in isolation will not explain it. Key invariants:
 
 1. **Override precedence**: a test app's own `<test_app>/components/` (highest) > `EXTRA_COMPONENT_DIRS` > managed > IDF built-in. The repo-root `components/` directory is added to each test app via `EXTRA_COMPONENT_DIRS`, so each test app's local `<test_app>/components/` (the auto-injected mock copy) can shadow it.
-2. **Per-app mock injection is a CMake-time copy**, not a checked-in duplicate. Each test app's root `CMakeLists.txt` does `file(COPY ../../mocks/<name>/ DESTINATION components/<name>/)` *before* `project()`. `tests/apps/*/components/` is therefore git-ignored — edit the canonical source under `tests/mocks/`, then reconfigure.
+2. **Per-app mock injection is a CMake-time copy**, not a checked-in duplicate. Test apps that mock a dependency do `file(COPY ${CMAKE_CURRENT_LIST_DIR}/../../mocks/<name>/ DESTINATION components/<name>/)` *before* `project()` (preceded by `file(REMOVE_RECURSE …)` to avoid stale copies). Currently only `test_component_A` injects a mock (for `component_B`); `test_component_B` and `test_integration_AB` link the real components. `tests/apps/*/components/` is git-ignored — edit the canonical source under `tests/mocks/`, then reconfigure.
 3. **`COMPONENT_OVERRIDEN_DIR`** (single 'D' — IDF's spelling) is the only correct way for a mock CMakeLists to locate the real component's headers. Do not hardcode `$ENV{IDF_PATH}/components/...`.
 4. **`mock_config.yaml` is mandatory.** Without `:plugins: [expect, ...]`, `_ExpectAndReturn` symbols are not generated and tests fail to link.
-5. **The empty-test-menu trap.** `WHOLE_ARCHIVE` on a test component is meaningless if nothing links it. The fix routes each app's test components through a `TEST_COMPONENTS` cache variable that `tests/common/test_main/CMakeLists.txt` reads and turns into a `REQUIRES` edge. Breaking that chain produces a binary that builds fine but reports zero tests at runtime.
+5. **The empty-test-menu trap.** `WHOLE_ARCHIVE` on a test component is meaningless if nothing links it. The fix routes each app's test components through a `TEST_COMPONENTS` env var (see invariant 8 for why env var, not CMake variable) that `tests/common/test_main/CMakeLists.txt` reads and turns into a `REQUIRES` edge. Breaking that chain produces a binary that builds fine but reports zero tests at runtime.
 6. **On the `linux` target, `set(COMPONENTS …)` must be set explicitly** in each test app to disable auto-inclusion of every IDF component (per host-apps doc). On `esp32p4` it is omitted.
 7. **Per-component tests live next to the code** (`components/<comp>/test/`); cross-component tests live in `tests/components/<unique_name>/` (currently just `test_int`). Each component's `test/` subdir is registered as an IDF component named `test` — collisions are avoided because each test app's `EXTRA_COMPONENT_DIRS` (per invariant 9) only points at one such dir, so any single binary contains at most one component named `test`. The `test_int` cross-component test gets a unique basename because it has no natural home inside one component.
 8. **`TEST_COMPONENTS` is passed via env var, not CMake variable.** Each test app does `set(ENV{TEST_COMPONENTS} "test")` (unit-test apps, picking up the nested `components/<comp>/test/` component) or `"test_int"` (integration app) before `project()`; `tests/common/test_main/CMakeLists.txt` reads `$ENV{TEST_COMPONENTS}`. CMake variables don't survive IDF's `cmake -P` requirements pre-scan subprocess; env vars do.
@@ -73,8 +73,10 @@ pytest -m "integration and host"
 # Run a single test
 pytest pytest_test_apps.py::test_unit_component_A
 
-# Hardware tests (requires connected ESP32-P4)
-idf.py -C tests/apps/test_integration_AB flash
+# Hardware tests (requires connected ESP32-P4) — keep build dir consistent
+# with the build step above so pytest finds the right artifacts.
+idf.py -C tests/apps/test_integration_AB \
+    -B tests/apps/test_integration_AB/build_esp32p4 flash
 pytest -m esp32p4
 ```
 
